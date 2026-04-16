@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Finder</title>
+    <style>
+        h1 {
+            color:white;
+            text-align: center;
+        }
+        body {
+            background:linear-gradient(90deg,#0d001a, #1f013d, #2b0050);
+            font-family:"Inter",-apple-system,"Nunito",BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+        }
+        div {
+            background: rgba(106, 164, 182, 0.27);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.382);
+            backdrop-filter: blur(3.9px);
+            text-align: center;
+            color:white;
+            text-shadow: 0 1px 10px rgba(255, 255, 255, 0.139);
+            width:50%;
+            margin:auto;
+            padding: 1rem;
+        }
+        .input {
+            color:black;
+            background-color: rgb(183, 158, 252);
+            border:none;
+            border-radius:9px;
+            padding:6px;
+            transition:250ms;
+            box-shadow: 0 2px 9px rgba(0, 0, 0, 0.625);
+        }
+        .input:hover {
+            background-color: hsl(256, 94%,80%);
+            box-shadow: none;
+            transform: translateY(1px);
+            margin-left:1px
+        }
+        .input:active {
+            background-color: hsl(256, 100%, 77%);
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>
+        Wordle Search
+    </h1>
+    <div>
+        <h1>Select Date</h1>
+        <p>By choosing a date, it will show you the wordle for that specific date, this allows you to view past wordles and even some future wordles that would usally cost you money.</p>
+        <input type="date" id="date" class="input">
+        <br>
+        <br>
+        <button id="yest" class="input">Yesterday</button>
+        <button id="seltoday" class="input">Today</button>
+        <button id="tom" class="input">Tomorrow</button>
+        <button id="sub" class="input">Get Wordle</button>
+        <h1 id="word"></h1>
+    </div>
+</body>
+<script>
+        //day = 86400
+        const q = (a) => document.getElementById(a);
+        const din = q('date')
+        const wordel = q('word')
+        function seldate(datestring) {
+            const date = new Date(datestring)
+            const options = {"year": "numeric","month": "2-digit","day": "2-digit"};
+            din.value = date.toLocaleDateString("en-CA", options)
+        }
+        function offsetDate(offset) {
+            const date = new Date(din.value != ""? din.value.split('-') : Date.now())
+            seldate(date.getTime() + offset)
+        }
+        q('seltoday').onclick = () => seldate(Date.now())
+        q('yest').onclick = () => offsetDate(-86400000)
+        q('tom').onclick = () => offsetDate(86400000)
+        async function fetchWordle(d) {
+            try {
+                const endpoint = `https://corsproxy.io/?url=https://www.nytimes.com/svc/wordle/v2/${d}.json`
+                const res = await fetch(endpoint)
+                if(!res.status === 429) throw new Error('Rate Limit Exceeded! slow down.')
+                else if(res.status === 404) throw new Error('Date not found! please pick a sooner date.')
+                else if(!res.ok) throw new Error('Could not fetch info, try again later.')
+                const json = await res.json()
+                return json.solution
+            } catch(e) {
+                return e
+            }
+        }
+        q("sub").onclick = async function() {
+            const d = din.value
+            if(!!d) {
+                const date = new Date(d)
+                if(date.getTime() >= 1624060800000) {
+                    const word = await fetchWordle(d)
+                    if(word instanceof Error) wordel.innerText = 'Error: ' + word.message
+                    else wordel.innerText = word
+                } else window.alert("You cant select a day before 2021-06-19")
+            } else window.alert('You need to enter in a date.')
+        }
+</script>
+
+</html>
