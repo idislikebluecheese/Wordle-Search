@@ -86,7 +86,7 @@
             try {
                 const endpoint = `https://corsproxy.io/?url=https://www.nytimes.com/svc/wordle/v2/${d}.json`
                 const res = await fetch(endpoint)
-                if(!res.status === 429) throw new Error('Rate Limit Exceeded! slow down.')
+                if(res.status === 429) throw new Error('Rate Limit Exceeded! slow down.')
                 else if(res.status === 404) throw new Error('Date not found! please pick a sooner date.')
                 else if(!res.ok) throw new Error('Could not fetch info, try again later.')
                 const json = await res.json()
