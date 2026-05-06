@@ -130,7 +130,6 @@
             const d = din.value;
             if (!d) return alert('Enter a date.');
             const date = new Date(d);
-            if (date.getTime() < 1624060800000) return alert("Date must be after 2021-06-19");
             const word = await fetchWordle(d);
             wordel.innerText = word instanceof Error ? 'Error: ' + word.message : word;
           };
