@@ -1,57 +1,86 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
   <foreignObject width="100%" height="100%">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <style>
-        body {
-          margin: 0;
-          background: linear-gradient(90deg,#0d001a, #1f013d, #2b0050);
-          font-family:"Inter",-apple-system,"Nunito",BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-          color: white;
-          text-align: center;
-        }
-        h1 {
-          color:white;
-        }
-        .card {
-          background: rgba(106, 164, 182, 0.27);
-          border-radius: 16px;
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.382);
-          backdrop-filter: blur(3.9px);
-          text-align: center;
-          color:white;
-          text-shadow: 0 1px 10px rgba(255, 255, 255, 0.139);
-          width:50%;
-          margin:auto;
-          padding: 1rem;
-        }
-        .input {
-          color:black;
-          background-color: rgb(183, 158, 252);
-          border:none;
-          border-radius:9px;
-          padding:6px;
-          transition:250ms;
-          box-shadow: 0 2px 9px rgba(0, 0, 0, 0.625);
-        }
-        .input:hover {
-          background-color: hsl(256, 94%,80%);
-          box-shadow: none;
-          transform: translateY(1px);
-        }
-        .input:active {
-          background-color: hsl(256, 100%, 77%);
-          transform: translateY(2px);
-        }
-      </style>
-
+    <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Wordle Search</title>
+        <style>
+          html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Inter",-apple-system,"Nunito",BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            background: linear-gradient(90deg,#0d001a, #1f013d, #2b0050);
+            color: white;
+            text-align: center;
+          }
+          .card {
+            background: rgba(106, 164, 182, 0.27);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.382);
+            backdrop-filter: blur(3.9px);
+            text-align: center;
+            color:white;
+            text-shadow: 0 1px 10px rgba(255,255,255,0.139);
+            width: 50%;
+            margin: auto;
+            padding: 1rem;
+          }
+          .input {
+            color: black;
+            background-color: rgb(183, 158, 252);
+            border: none;
+            border-radius: 9px;
+            padding: 6px;
+            transition: 250ms;
+            box-shadow: 0 2px 9px rgba(0,0,0,0.625);
+            margin: 0.25rem;
+          }
+          .input:hover {
+            background-color: hsl(256, 94%, 80%);
+            box-shadow: none;
+            transform: translateY(1px);
+          }
+          .input:active {
+            background-color: hsl(256, 100%, 77%);
+            transform: translateY(2px);
+          }
+          h1 {
+            margin: 0.5rem 0;
+          }
+        </style>
+        <script>
+          (function(){
+            const XHTML_NS = "http://www.w3.org/1999/xhtml";
+            const root = document.querySelector("foreignObject").firstElementChild;
+            const head = root.querySelector("head");
+            const body = root.querySelector("body");
+            const originalCreateElement = document.createElement.bind(document);
+            const originalCreateElementNS = document.createElementNS.bind(document);
+            Object.defineProperty(document, "head", { get() { return head }, configurable: true });
+            Object.defineProperty(document, "body", { get() { return body }, configurable: true });
+            Object.defineProperty(document, "documentElement", { get() { return root }, configurable: true });
+            document.createElement = function(tagName, options){
+              if(typeof tagName === "string") return originalCreateElementNS(XHTML_NS, tagName, options);
+              return originalCreateElement(tagName, options);
+            };
+            document.createElementNS = function(ns, name, options){
+              if(ns == null || ns === XHTML_NS) return originalCreateElementNS(XHTML_NS, name, options);
+              return originalCreateElementNS(ns, name, options);
+            };
+          })();
+        </script>
+      </head>
       <body>
         <h1>Wordle Search</h1>
         <div class="card">
           <h1>Select Date</h1>
-          <p>Pick a date to view that day's Wordle.</p>
+          <p>Pick a date to view that day's Wordle. You can see past and future wordles.</p>
 
           <input type="date" id="date" class="input" min="2021-06-19"/>
-          <br/><br/>
+          <br/>
 
           <button id="yest" class="input">Yesterday</button>
           <button id="seltoday" class="input">Today</button>
@@ -87,11 +116,9 @@
             try {
               const endpoint = `https://corsproxy.io/?url=https://www.nytimes.com/svc/wordle/v2/${d}.json`;
               const res = await fetch(endpoint);
-
               if (res.status === 429) throw new Error('Rate limit exceeded.');
               if (res.status === 404) throw new Error('Date not found.');
               if (!res.ok) throw new Error('Fetch failed.');
-
               const json = await res.json();
               return json.solution;
             } catch(e) {
@@ -102,19 +129,13 @@
           q("sub").onclick = async function() {
             const d = din.value;
             if (!d) return alert('Enter a date.');
-
             const date = new Date(d);
-            if (date.getTime() < 1624060800000) {
-              return alert("Date must be after 2021-06-19");
-            }
-
+            if (date.getTime() < 1624060800000) return alert("Date must be after 2021-06-19");
             const word = await fetchWordle(d);
-            wordel.innerText = word instanceof Error
-              ? 'Error: ' + word.message
-              : word;
+            wordel.innerText = word instanceof Error ? 'Error: ' + word.message : word;
           };
         </script>
       </body>
-    </div>
+    </html>
   </foreignObject>
 </svg>
